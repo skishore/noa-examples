@@ -28,7 +28,7 @@ import { setupInteractions } from './actions'
 var noa = new Engine({
     debug: true,
     showFPS: true,
-    inverseY: true,
+    inverseY: false,
     inverseX: false,
     chunkSize: 32,
     chunkAddDistance: [2, 1.5],     // [horiz, vert]
