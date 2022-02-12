@@ -36,72 +36,34 @@ export const initWorldGen = (noa, blockIDs) => {
 
 
   const generateChunk = (array, x, y, z, worldName) => {
+    console.log(`generateChunk(${x}, ${y}, ${z})`);
+    if (x !== 0 || y !== 0 || z !== 0) return;
+
     for (let i = 0; i < array.shape[0]; ++i) {
       for (let k = 0; k < array.shape[2]; ++k) {
-        const height = getHeightMap(x + i, z + k, 10, 30);
+        const wall = i === 0 || i === array.shape[0] - 1 ||
+                     k === 0 || k === array.shape[2] - 1;
+        const height = wall ? 4 : 0;
         for (let j = 0; j < array.shape[1]; ++j) {
-            const b = decideBlock(x + i, y + j, z + k, height)
-            if (b) array.set(i, j, k, b)
+          const b = decideBlock(x + i, y + j, z + k, height);
+          if (b) array.set(i, j, k, b);
         }
       }
     }
   }
 
-  const getHeightMap = (x, z, xsize, zsize) => {
-    const xs = 0.8 + 2 * Math.sin(x / xsize);
-    const zs = 0.4 + 2 * Math.sin(z / zsize + x / 30);
-    return xs + zs;
-  };
-
   const decideBlock = (x, y, z, height) => {
-    // Flat area to the NE, where we place some hand-crafted features.
-    if (x > 0 && z > 0) {
-        let h = 1;
-        if (z == 63 || x == 63) h = 20;
-        return (y < h) ? blockIDs.grassID : 0;
-    }
-    // General level generation: sine waves filled with water.
-    if (y < height) {
-      return (y < 0) ? blockIDs.dirtID : blockIDs.grassID;
-    } else if (y <= 0) {
-      return blockIDs.waterID;
-    }
-    return 0;
+    const block = 0 <= y && y <= height;
+    return block ? blockIDs.grassID : 0;
   }
 
-  // After the world is initialzed, fill in a bunch of test blocks. 
-  // There's no particular significance to these, I use them to 
-  // debug meshing and AO and whatnot
-
   const addWorldFeatures = () => {
-    noa.setBlock(blockIDs.testID1, -6, 5, 6);
-    noa.setBlock(blockIDs.testID2, -4, 5, 6);
-    noa.setBlock(blockIDs.testID3, -2, 5, 6);
-
-    noa.setBlock(blockIDs.windowID, -5, 3, 6);
-    noa.setBlock(blockIDs.windowID, -4, 3, 6);
-    noa.setBlock(blockIDs.windowID, -3, 3, 6);
-
-    noa.setBlock(blockIDs.testa, -6, 4, 6);
-    noa.setBlock(blockIDs.testb, -5, 4, 6);
-    noa.setBlock(blockIDs.testc, -4, 4, 6);
-
-    noa.setBlock(blockIDs.waterPole, -18, -1, 6);
-    noa.setBlock(blockIDs.waterPole, -16, -1, 6);
-    noa.setBlock(blockIDs.waterPole, -14, -1, 6);
-
     let z = 5;
     makeRows(10, 5, z, blockIDs.shinyDirtID);
     makeRows(10, 5, z + 2, blockIDs.dirtID);
     makeRows(10, 5, z + 5, blockIDs.dirtID);
     makeRows(10, 5, z + 9, blockIDs.dirtID);
     makeRows(10, 5, z + 14, blockIDs.dirtID);
-    z += 18;
-    makeRows(10, 5, z, blockIDs.customID);
-    makeRows(10, 5, z + 2, blockIDs.customID);
-    makeRows(10, 5, z + 5, blockIDs.customID);
-    makeRows(10, 5, z + 9, blockIDs.customID);
-    makeRows(10, 5, z + 14, blockIDs.customID);
   };
 
   const makeRows = (length, x, z, block) => {

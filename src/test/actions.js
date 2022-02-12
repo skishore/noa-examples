@@ -4,22 +4,22 @@ import { shootBouncyBall } from './entities'
 
 
 /*
- * 
+ *
  *      interactivity
- * 
+ *
 */
 
 
 /** @param {import("noa-engine").Engine} noa */
-export function setupInteractions(noa) {
+export function setupInteractions(noa, blockIDs) {
 
     // on left mouse, set targeted block to be air
     noa.inputs.down.on('fire', function () {
-        if (noa.targetedBlock) {
-            var pos = noa.targetedBlock.position
-            noa.setBlock(0, pos[0], pos[1], pos[2])
-        }
-    })
+      const block = noa.targetedBlock;
+      if (!block || block.blockID === blockIDs.grassID) return;
+      const pos = noa.targetedBlock.position;
+      noa.setBlock(0, pos[0], pos[1], pos[2]);
+    });
 
 
     // place block on alt-fire (RMB/E)

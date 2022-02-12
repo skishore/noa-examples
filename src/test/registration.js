@@ -8,9 +8,9 @@ import '@babylonjs/core/Meshes/Builders/boxBuilder'
 
 
 /*
- * 
+ *
  *		Register a bunch of blocks and materials and whatnot
- * 
+ *
 */
 
 export function initRegistration(noa) {

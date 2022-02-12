@@ -1,11 +1,11 @@
 
 
-/* 
+/*
  *
  *
  *      Testbed.
  *
- * 
+ *
  */
 
 
@@ -22,7 +22,8 @@ import { setupPlayerEntity } from './entities'
 import { setupInteractions } from './actions'
 
 
-
+const chunkSize = 32;
+const start = chunkSize / 2;
 
 // create engine
 var noa = new Engine({
@@ -30,11 +31,11 @@ var noa = new Engine({
     showFPS: true,
     inverseY: false,
     inverseX: false,
-    chunkSize: 32,
-    chunkAddDistance: [2, 1.5],     // [horiz, vert]
+    chunkSize,
+    chunkAddDistance: [0, 0],     // [horiz, vert]
     blockTestDistance: 50,
     texturePath: 'textures/',
-    playerStart: [0.5, 5, 0.5],
+    playerStart: [start, 5, start],
     playerHeight: 1.4,
     playerWidth: 0.6,
     playerAutoStep: true,
@@ -56,5 +57,5 @@ initWorldGen(noa, blockIDs)
 setupPlayerEntity(noa)
 
 // does stuff on button presses
-setupInteractions(noa)
+setupInteractions(noa, blockIDs)
 
