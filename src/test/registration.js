@@ -15,6 +15,8 @@ import '@babylonjs/core/Meshes/Builders/boxBuilder'
 
 export function initRegistration(noa) {
 
+    hijackComponentDefinitions(noa);
+
     // block materials
     var brownish = [0.45, 0.36, 0.22]
     var greenish = [0.1, 0.8, 0.2]
@@ -140,4 +142,56 @@ export function initRegistration(noa) {
     return blockIDs
 }
 
+import vec3 from 'gl-vec3';
 
+let errorCaught = false;
+
+const hijackComponentDefinitions = (noa) => {
+  noa.ents.components.movement.system = catchErrors(movementSystem(noa));
+};
+
+const catchErrors = (system) => (dt, states) => {
+  if (errorCaught) return;
+  try {
+    system(dt, states);
+  } catch (e) {
+    errorCaught = true;
+    console.error(e);
+  }
+};
+
+const movementSystem = (noa) => (dt, states) => {
+  const ents = noa.ents;
+  for (const state of states) {
+    const physics = ents.getPhysics(state.__id);
+    if (physics) applyMovementPhysics(dt, state, physics.body);
+  }
+};
+
+const move = vec3.create();
+const push = vec3.create();
+const zero = vec3.create();
+
+const applyMovementPhysics = (dt, state, body) => {
+  if (!state.running) {
+    body.friction = state.standingFriction;
+    return;
+  }
+
+  const speed = state.maxSpeed;
+  vec3.set(move, 0, 0, speed);
+  vec3.rotateY(move, move, zero, state.heading);
+
+  vec3.subtract(push, move, body.velocity);
+  push[1] = 0;
+  const length = vec3.length(push);
+
+  if (length > 0) {
+    const bound = Math.min(state.moveForce, state.responsiveness * length);
+    vec3.normalize(push, push);
+    vec3.scale(push, push, bound);
+    body.applyForce(push);
+  }
+
+  body.friction = state.runningFriction;
+};
