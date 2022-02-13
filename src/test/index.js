@@ -32,11 +32,11 @@ var noa = new Engine({
     inverseY: false,
     inverseX: false,
     chunkSize,
-    chunkAddDistance: [0, 0],     // [horiz, vert]
+    chunkAddDistance: [0, 0],
     blockTestDistance: 50,
     texturePath: 'textures/',
     playerStart: [start, 5, start],
-    playerHeight: 1.4,
+    playerHeight: 1.2,
     playerWidth: 0.6,
     playerAutoStep: true,
     useAO: true,
@@ -44,6 +44,8 @@ var noa = new Engine({
     reverseAOmultiplier: 1.0,
     manuallyControlChunkLoading: false,
     originRebaseDistance: 25,
+    fluidDensity: 2.0,
+    fluidDrag: 4.0,
 })
 
 

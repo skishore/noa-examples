@@ -34,7 +34,7 @@ export function setupPlayerEntity(noa) {
     })
 
     const physics = noa.entities.getPhysicsBody(eid);
-    physics.gravityMultiplier = 4;
+    physics.autoStep = false;
 
     const movement = noa.entities.getMovement(eid);
     movement.airJumps = 0;

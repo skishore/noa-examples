@@ -15,8 +15,6 @@ import '@babylonjs/core/Meshes/Builders/boxBuilder'
 
 export function initRegistration(noa) {
 
-    hijackComponentDefinitions(noa);
-
     // block materials
     var brownish = [0.45, 0.36, 0.22]
     var greenish = [0.1, 0.8, 0.2]
@@ -136,18 +134,21 @@ export function initRegistration(noa) {
         opaque: false,
     })
 
-
-
+    hijackComponentDefinitions(noa, blockIDs);
 
     return blockIDs
 }
 
 import vec3 from 'gl-vec3';
 
+let noa = null;
+let blockIDs = null;
 let errorCaught = false;
 
-const hijackComponentDefinitions = (noa) => {
-  noa.ents.components.movement.system = catchErrors(movementSystem(noa));
+const hijackComponentDefinitions = (a, b) => {
+  noa = a;
+  blockIDs = b;
+  noa.ents.components.movement.system = catchErrors(movementSystem);
 };
 
 const catchErrors = (system) => (dt, states) => {
@@ -160,7 +161,32 @@ const catchErrors = (system) => (dt, states) => {
   }
 };
 
-const movementSystem = (noa) => (dt, states) => {
+const movementState = {
+  heading: 0,
+  running: false,
+  jumping: false,
+
+  // options
+  maxSpeed: 10,
+  moveForce: 30,
+  responsiveness: 15,
+  runningFriction: 0,
+  standingFriction: 2,
+
+  // jumps
+  airMoveMult: 0.5,
+  jumpImpulse: 10,
+  jumpForce: 12,
+  jumpTime: 500,
+  airJumps: 1,
+
+  // internal state
+  _jumpCount: 0,
+  _currjumptime: 0,
+  _isJumping: false,
+};
+
+const movementSystem = (dt, states) => {
   const ents = noa.ents;
   for (const state of states) {
     const physics = ents.getPhysics(state.__id);
@@ -173,11 +199,51 @@ const push = vec3.create();
 const zero = vec3.create();
 
 const applyMovementPhysics = (dt, state, body) => {
-  if (!state.running) {
+  body.gravityMultiplier = body.inFluid ? 2 : 4;
+
+  const grounded = body.atRestY() < 0;
+  if (grounded) {
+    state._isJumping = false;
+    state._jumpCount = 0;
+  }
+
+  if (state.jumping) {
+    handleJumping(dt, state, body, grounded);
+  } else {
+    state._isJumping = false;
+  }
+
+  if (state.running) {
+    handleRunning(dt, state, body, grounded);
+    body.friction = state.runningFriction;
+  } else {
     body.friction = state.standingFriction;
+  }
+};
+
+const handleJumping = (dt, state, body, grounded) => {
+  if (state._isJumping) {
+    if (state._currjumptime <= 0) return;
+    const delta = state._currjumptime < dt ? state._currjumptime / dt : 1;
+    const force = state.jumpForce * delta;
+    body.applyForce([0, force, 0]);
     return;
   }
 
+  const hasAirJumps = state._jumpCount < state.airJumps;
+  const canJump = grounded || body.inFluid || hasAirJumps;
+  if (!canJump) return;
+
+  state._isJumping = true;
+  state._currjumptime = state.jumpTime;
+  body.applyImpulse([0, state.jumpImpulse, 0]);
+  if (grounded) return;
+
+  body.velocity[1] = Math.max(body.velocity[1], 0);
+  state._jumpCount++;
+};
+
+const handleRunning = (dt, state, body, grounded) => {
   const speed = state.maxSpeed;
   vec3.set(move, 0, 0, speed);
   vec3.rotateY(move, move, zero, state.heading);
@@ -185,13 +251,12 @@ const applyMovementPhysics = (dt, state, body) => {
   vec3.subtract(push, move, body.velocity);
   push[1] = 0;
   const length = vec3.length(push);
+  if (length === 0) return;
 
-  if (length > 0) {
-    const bound = Math.min(state.moveForce, state.responsiveness * length);
-    vec3.normalize(push, push);
-    vec3.scale(push, push, bound);
-    body.applyForce(push);
-  }
-
-  body.friction = state.runningFriction;
+  const bound = state.moveForce * (grounded ? 1 : state.airMoveMult);
+  const input = state.responsiveness * length;
+  const force = Math.min(bound, input);
+  vec3.normalize(push, push);
+  vec3.scale(push, push, force);
+  body.applyForce(push);
 };

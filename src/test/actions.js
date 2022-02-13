@@ -17,8 +17,9 @@ export function setupInteractions(noa, blockIDs) {
     noa.inputs.down.on('fire', function () {
       const block = noa.targetedBlock;
       if (!block || block.blockID === blockIDs.grassID) return;
-      const pos = noa.targetedBlock.position;
+      const pos = Array.from(noa.targetedBlock.position);
       noa.setBlock(0, pos[0], pos[1], pos[2]);
+      setTimeout(() => flowWater(noa, blockIDs, [pos]), kWaterDelay);
     });
 
 
@@ -96,3 +97,40 @@ export function setupInteractions(noa, blockIDs) {
 
 }
 
+const kWaterDelay = 200;
+const kWaterDisplacements = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+  [-1, 0, 0],
+  [0, 0, -1],
+];
+
+const hasWaterNeighbor = (noa, blockIDs, p) => {
+  for (const d of kWaterDisplacements) {
+    const block = noa.getBlock(d[0] + p[0], d[1] + p[1], d[2] + p[2]);
+    if (block === blockIDs.waterID) return true;
+  }
+  return false;
+};
+
+const flowWater = (noa, blockIDs, points) => {
+  const visited = {};
+  const next = [];
+
+  for (const p of points) {
+    const block = noa.getBlock(p[0], p[1], p[2]);
+    if (block !== 0 || !hasWaterNeighbor(noa, blockIDs, p)) continue;
+    noa.setBlock(blockIDs.waterID, p[0], p[1], p[2]);
+    for (const d of kWaterDisplacements) {
+      const n = [p[0] - d[0], p[1] - d[1], p[2] - d[2]];
+      const key = `${n[0]}-${n[1]}-${n[2]}`;
+      if (visited[key]) continue;
+      visited[key] = true;
+      next.push(n);
+    }
+  }
+
+  if (next.length === 0) return;
+  setTimeout(() => flowWater(noa, blockIDs, next), kWaterDelay);
+};
