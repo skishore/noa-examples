@@ -43,7 +43,7 @@ export const initWorldGen = (noa, blockIDs) => {
       for (let k = 0; k < array.shape[2]; ++k) {
         const wall = i === 0 || i === array.shape[0] - 1 ||
                      k === 0 || k === array.shape[2] - 1;
-        const height = wall ? 4 : 0;
+        const height = wall ? 9 : 1;
         for (let j = 0; j < array.shape[1]; ++j) {
           const b = decideBlock(x + i, y + j, z + k, height);
           if (b) array.set(i, j, k, b);
@@ -53,26 +53,9 @@ export const initWorldGen = (noa, blockIDs) => {
   }
 
   const decideBlock = (x, y, z, height) => {
-    const block = 0 <= y && y <= height;
-    return block ? blockIDs.grassID : 0;
+    if (y < height) return blockIDs.grassID;
+    if (y < 5) return z < 20 ? blockIDs.dirtID : blockIDs.waterID;
+    return 0;
   }
-
-  const addWorldFeatures = () => {
-    let z = 5;
-    makeRows(10, 5, z, blockIDs.shinyDirtID);
-    makeRows(10, 5, z + 2, blockIDs.dirtID);
-    makeRows(10, 5, z + 5, blockIDs.dirtID);
-    makeRows(10, 5, z + 9, blockIDs.dirtID);
-    makeRows(10, 5, z + 14, blockIDs.dirtID);
-  };
-
-  const makeRows = (length, x, z, block) => {
-    for (let i = 0; i < length; i++) {
-      noa.setBlock(block, x + i, 1, z + i);
-      noa.setBlock(block, length * 2 + x - i, 1, z + i);
-    }
-  }
-
-  setTimeout(addWorldFeatures, 1000);
 };
 

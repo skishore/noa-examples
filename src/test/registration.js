@@ -79,13 +79,9 @@ export function initRegistration(noa) {
     })
     blockIDs.testID3 = noa.registry.registerBlock(_id++, { material: ['1', '2', 'a'] })
     blockIDs.waterID = noa.registry.registerBlock(_id++, {
-        material: 'water',
-        fluid: true
-    })
-    blockIDs.water2ID = noa.registry.registerBlock(_id++, {
-        material: 'water2',
-        fluid: true
-    })
+      material: 'water',
+      fluid: true,
+    });
     blockIDs.customID = noa.registry.registerBlock(_id++, {
         blockMesh: mesh,
         opaque: false,
