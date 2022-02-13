@@ -6,9 +6,9 @@ import '@babylonjs/core/Meshes/Builders/sphereBuilder'
 
 
 /*
- * 
+ *
  *      helpers for setting up entities
- * 
+ *
 */
 
 
@@ -32,6 +32,12 @@ export function setupPlayerEntity(noa) {
         mesh: playerMesh,
         offset: offset
     })
+
+    const physics = noa.entities.getPhysicsBody(eid);
+    physics.gravityMultiplier = 4;
+
+    const movement = noa.entities.getMovement(eid);
+    movement.airJumps = 0;
 }
 
 
