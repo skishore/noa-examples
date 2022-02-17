@@ -1,2 +1,2 @@
 #!/bin/bash
-pushd src/test && /Users/skannan/Projects/noa-examples/node_modules/.bin/webpack serve && popd
+pushd src && ../node_modules/.bin/webpack serve && popd
